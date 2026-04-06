@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SOTE Optikai Hálózat – Mixed Tier Topológia</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0f1117;color:#e0e0e0;overflow:hidden;height:100vh}
+#toolbar{position:fixed;top:0;left:0;right:0;height:48px;background:#1a1d27;border-bottom:1px solid #2a2d3a;display:flex;align-items:center;padding:0 16px;z-index:100;gap:12px}
+#toolbar h1{font-size:14px;font-weight:600;color:#8bb4f0;white-space:nowrap}
+#toolbar .sep{width:1px;height:24px;background:#2a2d3a}
+.btn{padding:4px 10px;border-radius:6px;border:1px solid #2a2d3a;background:#1e2130;color:#aab;font-size:11px;cursor:pointer;white-space:nowrap}
+.btn:hover{background:#252840;border-color:#3a3d5a}
+.btn.active{background:#2a3a5a;border-color:#4a6a9a;color:#8bb4f0}
+#legend{position:fixed;bottom:12px;left:12px;background:#1a1d27ee;border:1px solid #2a2d3a;border-radius:8px;padding:10px 14px;z-index:100;font-size:11px;line-height:1.8}
+.leg-item{display:flex;align-items:center;gap:8px}
+.leg-dot{width:14px;height:14px;border-radius:3px;flex-shrink:0}
+#stats{position:fixed;bottom:12px;right:12px;background:#1a1d27ee;border:1px solid #2a2d3a;border-radius:8px;padding:10px 14px;z-index:100;font-size:11px;line-height:1.8}
+#canvas{position:absolute;top:48px;left:0;right:0;bottom:0;overflow:hidden;cursor:grab}
+#canvas:active{cursor:grabbing}
+#world{transform-origin:0 0;position:absolute;width:4000px;height:3000px}
+.node-group{position:absolute;cursor:pointer;transition:filter .15s}
+.node-group:hover{filter:brightness(1.2)}
+.node-box{border-radius:8px;padding:8px 10px;min-width:100px;border:1.5px solid;position:relative}
+.node-box .name{font-weight:600;font-size:11px;white-space:nowrap}
+.node-box .info{font-size:9.5px;opacity:.75;margin-top:2px;white-space:nowrap}
+.node-box .tier-badge{position:absolute;top:-8px;right:6px;font-size:8px;padding:1px 5px;border-radius:3px;font-weight:700;letter-spacing:.5px}
+.core .node-box{background:#1a3a2a;border-color:#2d8a55;color:#7ddf9b}
+.core .tier-badge{background:#2d8a55;color:#0a1a10}
+.distro .node-box{background:#2a2440;border-color:#7a5adf;color:#b89aff}
+.distro .tier-badge{background:#7a5adf;color:#1a1430}
+.access .node-box{background:#1a2a3a;border-color:#4a8abf;color:#8ac4f0}
+.access .tier-badge{background:#4a8abf;color:#0a1520}
+.access-lila .node-box{background:#2a1a2a;border-color:#bf4aaf;color:#e08ad8}
+.access-lila .tier-badge{background:#bf4aaf;color:#1a0a1a}
+.mpls .node-box{background:#2a2520;border-color:#bf8a3a;color:#e0c080}
+.mpls .tier-badge{background:#bf8a3a;color:#1a1510}
+.passive .node-box{background:#2a2a1a;border-color:#bfbf3a;color:#e0e080;border-style:dashed}
+.passive .tier-badge{background:#bfbf3a;color:#1a1a10}
+.warn .node-box{border-color:#e04040 !important;box-shadow:0 0 8px #e0404040}
+svg.links{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none}
+.link-line{stroke-width:1.5;fill:none}
+.link-os2{stroke:#4a8abf}
+.link-mmf{stroke:#bf8a3a}
+.link-om3{stroke:#5abf5a}
+.link-om4{stroke:#3abfbf}
+.link-om1{stroke:#bf5a3a}
+.link-unknown{stroke:#bf3a3a;stroke-dasharray:6 3}
+.link-mpls{stroke:#8a8a5a;stroke-dasharray:4 4;stroke-width:1}
+.link-label{position:absolute;font-size:8.5px;padding:1px 4px;border-radius:3px;background:#1a1d27dd;color:#aaa;white-space:nowrap;pointer-events:none;transform:translate(-50%,-50%)}
+.link-label.problem{color:#ff6a6a;background:#2a1015dd}
+.tooltip{position:fixed;z-index:200;background:#1e2130;border:1px solid #3a3d5a;border-radius:8px;padding:10px 14px;font-size:11px;line-height:1.6;max-width:300px;pointer-events:none;display:none}
+.tooltip .tt-title{font-weight:700;color:#8bb4f0;margin-bottom:4px}
+.tooltip .tt-warn{color:#ff6a6a;margin-top:4px}
+#filter-bar{display:flex;gap:4px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<div id="toolbar">
+  <h1>SOTE Optikai Hálózat – Mixed Tier Topológia</h1>
+  <div class="sep"></div>
+  <div id="filter-bar">
+    <button class="btn active" onclick="toggleFilter('all')">Mind</button>
+    <button class="btn" onclick="toggleFilter('kkt')">KKT ág</button>
+    <button class="btn" onclick="toggleFilter('bkt')">BKT ág</button>
+    <button class="btn" onclick="toggleFilter('warn')">Problémák</button>
+  </div>
+  <div class="sep"></div>
+  <button class="btn" onclick="resetView()">Reset nézet</button>
+  <button class="btn" onclick="zoomIn()">+</button>
+  <button class="btn" onclick="zoomOut()">−</button>
+</div>
+
+<div id="canvas">
+  <div id="world">
+    <svg class="links" id="svg-links"></svg>
+  </div>
+</div>
+
+<div id="legend">
+  <div class="leg-item"><div class="leg-dot" style="background:#2d8a55"></div> Core (gépterem)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#7a5adf"></div> Disztribúció</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#4a8abf"></div> Access (kék)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#bf4aaf"></div> Access (lila)</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#bfbf3a;border:1px dashed #888"></div> Passzív elosztó</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#bf8a3a"></div> MPLS L3</div>
+  <div class="leg-item"><div class="leg-dot" style="background:#e04040;border-radius:50%"></div> Bővítés szükséges</div>
+  <div style="margin-top:6px;border-top:1px solid #2a2d3a;padding-top:6px">
+    <div class="leg-item"><div style="width:14px;height:2px;background:#4a8abf"></div> OS2 SMF 9/125</div>
+    <div class="leg-item"><div style="width:14px;height:2px;background:#bf8a3a"></div> MMF 50/125</div>
+    <div class="leg-item"><div style="width:14px;height:2px;background:#bf5a3a"></div> MMF 62,5/125 (OM1)</div>
+    <div class="leg-item"><div style="width:14px;height:2px;background:#bf3a3a;border-top:1px dashed #bf3a3a"></div> Ismeretlen / hiányzó</div>
+  </div>
+</div>
+
+<div id="stats"></div>
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const nodes = [
+  // CORE
+  {id:'bkt',x:600,y:80,type:'core',branch:'bkt',name:'BKT Gépterem',info:'2× Core SW (48p)',rendezok:0},
+  {id:'kkt',x:1800,y:80,type:'core',branch:'kkt',name:'KKT Gépterem',info:'2× Core SW (48p)',rendezok:0},
+
+  // PASSIVE DISTRIBUTORS
+  {id:'path_eloszt',x:350,y:240,type:'passive',branch:'bkt',name:'Pathológia elosztó',info:'Passzív optikai'},
+  {id:'noi1_eloszt',x:180,y:360,type:'passive',branch:'bkt',name:'I. Női kl. elosztó',info:'Passzív optikai'},
+  {id:'belgy_eloszt',x:700,y:240,type:'passive',branch:'bkt',name:'Belgyógyászat elosztó',info:'Passzív optikai'},
+  {id:'elte_eloszt',x:450,y:440,type:'passive',branch:'bkt',name:'ELTE Trefortkert elosztó',info:'Passzív optikai'},
+  {id:'bizt_eloszt',x:1900,y:440,type:'passive',branch:'kkt',name:'Biztonságtechnika elosztó',info:'Passzív optikai'},
+  {id:'igorsv_eloszt',x:1600,y:440,type:'passive',branch:'kkt',name:'II.Path.(Igü.) elosztó',info:'Passzív optikai'},
+  {id:'anat_eloszt',x:1550,y:560,type:'passive',branch:'kkt',name:'Anatómia elosztó',info:'Passzív optikai'},
+  {id:'eok_eloszt',x:1500,y:680,type:'passive',branch:'kkt',name:'EOK elosztó',info:'Passzív optikai'},
+  {id:'pak_eloszt',x:500,y:800,type:'passive',branch:'mpls',name:'PAK elosztó',info:'Passzív optikai'},
+  {id:'janos_eloszt',x:400,y:680,type:'passive',branch:'mpls',name:'János Kórház elosztó',info:'Passzív optikai'},
+  {id:'prom_eloszt',x:1700,y:900,type:'passive',branch:'mpls',name:'PRO-M elosztó',info:'MPLS L3'},
+
+  // BKT DISTRIBUTIONS
+  {id:'rokus',x:300,y:560,type:'distro',branch:'bkt',name:'Rókus',info:'12 rendező',rendezok:12},
+  {id:'etk',x:500,y:560,type:'distro',branch:'bkt',name:'ETK',info:'11 rendező',rendezok:11},
+  {id:'fok_oc',x:150,y:240,type:'distro',branch:'bkt',name:'FOK OC',info:'8 rendező',rendezok:8,warn:'Optika ismeretlen BKT felé'},
+  {id:'b52',x:800,y:200,type:'distro',branch:'bkt',name:'B52',info:'10 rendező',rendezok:10,warn:'Csak 4x SMF, bővítés javasolt'},
+  {id:'bc22',x:900,y:200,type:'distro',branch:'bkt',name:'BC22',info:'8 rendező',rendezok:8,warn:'Csak 4x SMF, bővítés javasolt'},
+  {id:'gyogyszer',x:950,y:360,type:'distro',branch:'bkt',name:'Gyógyszer Kémiai Int.',info:'9? rendező',rendezok:9},
+  {id:'belgy_a',x:750,y:400,type:'distro',branch:'bkt',name:'II. Belgyógyászat A',info:'3 rendező, DISZTRIBÚCIÓ',rendezok:3},
+  {id:'noi1',x:100,y:480,type:'distro',branch:'bkt',name:'I. Női klinika',info:'9 rendező',rendezok:9,warn:'OM1 fiber, 10G-hez nem alkalmas'},
+
+  // BKT ACCESS
+  {id:'szajseb',x:400,y:160,type:'access',branch:'bkt',name:'Szájsebészet',info:'1 rendező',rendezok:1},
+  {id:'konyvtar',x:600,y:200,type:'access',branch:'bkt',name:'Könyvtár',info:'2 rendező',rendezok:2},
+  {id:'gazdasagi',x:680,y:300,type:'access',branch:'bkt',name:'Gazdasági és Műszaki',info:'1 rendező',rendezok:1},
+  {id:'gyermek2',x:1100,y:200,type:'access',branch:'bkt',name:'II. Gyermek Klinika',info:'6 rendező',rendezok:6},
+  {id:'szemeszet',x:200,y:300,type:'access',branch:'bkt',name:'II. Szemészet',info:'2 rendező',rendezok:2,warn:'OM1 fiber'},
+  {id:'pathologia2',x:400,y:300,type:'access',branch:'bkt',name:'II. Pathológia',info:'4 rendező',rendezok:4,warn:'Csak 4x OM1, bővítés kell'},
+  {id:'sellye',x:50,y:300,type:'access',branch:'bkt',name:'Sellye Koll.',info:'1 rendező',rendezok:1,warn:'OM1 fiber'},
+  {id:'belgy_b',x:800,y:500,type:'access',branch:'bkt',name:'II. Belgyógyászat B',info:'2 rendező',rendezok:2},
+  {id:'rektori',x:900,y:500,type:'access',branch:'bkt',name:'Rektori Hivatal',info:'4 rendező',rendezok:4},
+  {id:'bor',x:1000,y:500,type:'access',branch:'bkt',name:'Bőrgyógyászat',info:'4 rendező',rendezok:4},
+  {id:'szerves',x:1050,y:420,type:'access',branch:'bkt',name:'Szerves Vegytan',info:'? rendező',rendezok:0},
+  {id:'schoff',x:1150,y:420,type:'access',branch:'bkt',name:'Schöffmérei',info:'? rendező',rendezok:0},
+  {id:'transzplant',x:100,y:600,type:'access',branch:'bkt',name:'Transzplantáció',info:'5 rendező',rendezok:5},
+  {id:'ferencter',x:1200,y:300,type:'access',branch:'bkt',name:'Ferenc tér',info:'Elosztó pont',rendezok:0},
+
+  // KKT DISTRIBUTIONS
+  {id:'noi2',x:1700,y:240,type:'distro',branch:'kkt',name:'II. Női Klinika',info:'8 rendező',rendezok:8},
+  {id:'neuro',x:2100,y:240,type:'distro',branch:'kkt',name:'Neurológia/Pszichi',info:'7 rendező',rendezok:7},
+  {id:'belgy1',x:2200,y:360,type:'distro',branch:'kkt',name:'I. Belgyógyászat',info:'7 rendező',rendezok:7},
+  {id:'seb',x:1500,y:300,type:'distro',branch:'kkt',name:'KKT Sebészet',info:'8 rendező',rendezok:8,warn:'KKT→Seb. optika ismeretlen!'},
+  {id:'gyermek1',x:1350,y:440,type:'distro',branch:'kkt',name:'I. Gyermekklinika',info:'15 rendező',rendezok:15},
+  {id:'nagyvarad',x:1600,y:700,type:'distro',branch:'kkt',name:'Nagyvárad Tér',info:'33 rendező',rendezok:33},
+
+  // KKT ACCESS
+  {id:'radio',x:1700,y:360,type:'access',branch:'kkt',name:'Radiológia',info:'6 rendező',rendezok:6},
+  {id:'kbe',x:1800,y:360,type:'access',branch:'kkt',name:'KBE',info:'12 rendező, 45 AS',rendezok:12,warn:'Optika ismeretlen!'},
+  {id:'tomo',x:2200,y:440,type:'access',branch:'kkt',name:'Tömő',info:'8 rendező',rendezok:8},
+  {id:'urol',x:2000,y:360,type:'access',branch:'kkt',name:'Urológia',info:'3 rendező',rendezok:3},
+  {id:'s1',x:1350,y:360,type:'access',branch:'kkt',name:'S1 Épület',info:'1 rendező',rendezok:1},
+  {id:'fulorr',x:1400,y:360,type:'access',branch:'kkt',name:'Fül-Orr-Gége',info:'3 rendező',rendezok:3},
+  {id:'balassa',x:2000,y:500,type:'access',branch:'kkt',name:'Balassa Koll.',info:'3 rendező',rendezok:3,warn:'Kevés szál, bővítés kell'},
+  {id:'kalvaria',x:2000,y:440,type:'access',branch:'kkt',name:'Kálvária',info:'1 rendező',rendezok:1,warn:'OM1 fiber'},
+  {id:'rezsokoll',x:1750,y:800,type:'distro',branch:'kkt',name:'Rezső Kollégium',info:'? rendező',rendezok:0},
+
+  // LILA ACCESS
+  {id:'mosoda',x:1900,y:160,type:'access-lila',branch:'kkt',name:'Mosoda',info:'1 rendező (lila)',rendezok:1},
+  {id:'logisztika',x:2000,y:160,type:'access-lila',branch:'kkt',name:'Logisztika',info:'1 rendező (lila)',rendezok:1},
+  {id:'kazan',x:2100,y:160,type:'access-lila',branch:'kkt',name:'Kazán',info:'1 rendező (lila)',rendezok:1},
+  {id:'kalvaria_lila',x:1950,y:560,type:'access-lila',branch:'kkt',name:'Kálvária',info:'1 rendező (lila)',rendezok:1,warn:'OM1 fiber'},
+
+  // MPLS
+  {id:'orfi',x:1600,y:1000,type:'mpls',branch:'mpls',name:'ORFI',info:'16 rendező',rendezok:16},
+  {id:'merenyi',x:1750,y:1000,type:'mpls',branch:'mpls',name:'Merényi',info:'18 rendező',rendezok:18},
+  {id:'amerikai',x:1900,y:1000,type:'mpls',branch:'mpls',name:'Amerikai',info:'? rendező',rendezok:0},
+  {id:'budakeszi',x:2050,y:1000,type:'mpls',branch:'mpls',name:'Budakeszi',info:'? rendező',rendezok:0},
+  {id:'pak_kut',x:500,y:920,type:'mpls',branch:'mpls',name:'PAK-KÚT',info:'8 rendező',rendezok:8},
+  {id:'erseb',x:600,y:920,type:'mpls',branch:'mpls',name:'Érsebészet',info:'24 rendező',rendezok:24},
+  {id:'emk',x:400,y:920,type:'mpls',branch:'mpls',name:'EMK',info:'2 rendező',rendezok:2},
+  {id:'v70',x:700,y:920,type:'mpls',branch:'mpls',name:'V70',info:'8 rendező',rendezok:8,warn:'Optika ismeretlen'},
+];
+
+const links = [
+  // Core interconnect
+  {from:'bkt',to:'kkt',label:'48x SMF OS2',type:'os2'},
+
+  // BKT direct
+  {from:'bkt',to:'szajseb',label:'8x SMF 9/125',type:'os2'},
+  {from:'bkt',to:'konyvtar',label:'4x SMF + 8x MMF 50/125',type:'os2'},
+  {from:'bkt',to:'b52',label:'4x SMF 9/125',type:'os2',problem:'Bővítés javasolt +4-8x OS2'},
+  {from:'bkt',to:'bc22',label:'4x SMF 9/125',type:'os2',problem:'Bővítés javasolt +4-8x OS2'},
+  {from:'bkt',to:'fok_oc',label:'? (ismeretlen!)',type:'unknown',problem:'Min. 8x OS2 kiépítés kell'},
+  {from:'bkt',to:'gyogyszer',label:'12x OS2 + 4x MMF 62,5',type:'os2'},
+  {from:'bkt',to:'gyermek2',label:'16x OS2 + 8x OM3',type:'os2'},
+  {from:'bkt',to:'rokus',label:'12x SMF 9/125',type:'os2'},
+
+  // BKT via elosztók
+  {from:'bkt',to:'path_eloszt',label:'2×8x MMF 62,5',type:'om1'},
+  {from:'path_eloszt',to:'szemeszet',label:'12x MMF 62,5',type:'om1'},
+  {from:'path_eloszt',to:'pathologia2',label:'4x MMF 62,5',type:'om1',problem:'+8x OS2 bővítés kell'},
+  {from:'path_eloszt',to:'noi1_eloszt',label:'12x MMF 62,5',type:'om1'},
+  {from:'noi1_eloszt',to:'noi1',label:'4x MMF 62,5',type:'om1',problem:'Új 8x OS2 kell'},
+  {from:'bkt',to:'belgy_eloszt',label:'12x OS2 9/125',type:'os2'},
+  {from:'belgy_eloszt',to:'belgy_a',label:'12x OS2 (fejtve 4)',type:'os2'},
+  {from:'belgy_eloszt',to:'belgy_b',label:'16x MMF 62,5',type:'om1'},
+  {from:'bkt',to:'elte_eloszt',label:'30x SMF + 10x MMF 50/125',type:'os2'},
+  {from:'elte_eloszt',to:'etk',label:'10x SMF 9/125',type:'os2'},
+  {from:'elte_eloszt',to:'rokus',label:'MPLS L3',type:'mpls'},
+
+  // BKT chains
+  {from:'konyvtar',to:'gazdasagi',label:'4x SMF + 8x MMF 50/125',type:'os2'},
+  {from:'fok_oc',to:'sellye',label:'4x MMF 62,5 (OM1)',type:'om1',problem:'2x OS2 csere javasolt'},
+  {from:'gyogyszer',to:'szerves',label:'4x MMF 62,5',type:'om1'},
+  {from:'szerves',to:'schoff',label:'4x MMF 62,5',type:'om1'},
+  {from:'belgy_a',to:'belgy_b',label:'(helyi)',type:'os2'},
+  {from:'belgy_a',to:'rektori',label:'12x MMF 62,5',type:'om1'},
+  {from:'rektori',to:'bor',label:'4x MMF 62,5',type:'om1'},
+  {from:'noi1',to:'transzplant',label:'12x OS2 (2 szab.)',type:'os2'},
+  {from:'gyermek2',to:'ferencter',label:'8x OS2 9/125',type:'os2'},
+
+  // BKT via KKT Sebészet (dual homed)
+  {from:'bkt',to:'seb',label:'30x OS2 + 10x OM3',type:'os2'},
+
+  // KKT direct
+  {from:'kkt',to:'noi2',label:'12x OS2 9/125',type:'os2'},
+  {from:'kkt',to:'mosoda',label:'8x MMF 50/125',type:'mmf'},
+  {from:'kkt',to:'neuro',label:'12x MMF 50/125',type:'mmf'},
+  {from:'kkt',to:'belgy1',label:'12x OS2 + 4x OM3',type:'os2'},
+  {from:'kkt',to:'urol',label:'12x OS2 + 16x MMF',type:'os2'},
+  {from:'kkt',to:'seb',label:'?x SMF ? (ismeretlen!)',type:'unknown',problem:'Min. 24x OS2 kiépítés kell!'},
+
+  // KKT chains
+  {from:'mosoda',to:'logisztika',label:'4x OM3 50/125',type:'om3'},
+  {from:'mosoda',to:'kazan',label:'2x OM3 50/125',type:'om3'},
+  {from:'noi2',to:'radio',label:'4x OS2 9/125',type:'os2'},
+  {from:'noi2',to:'kbe',label:'? (ismeretlen!)',type:'unknown',problem:'Min. 8x OS2 kiépítés kell'},
+  {from:'neuro',to:'tomo',label:'4x OS2 9/125',type:'os2'},
+
+  // KKT Sebészet sub-tree
+  {from:'seb',to:'s1',label:'2x OM4',type:'om4'},
+  {from:'seb',to:'fulorr',label:'12x OS2',type:'os2'},
+  {from:'seb',to:'gyermek1',label:'2x OS2',type:'os2'},
+  {from:'kkt',to:'gyermek1',label:'2x OS2 + 4x OM3',type:'os2'},
+  {from:'seb',to:'nagyvarad',label:'30x OS2 + 10x OM3',type:'os2'},
+
+  // Elosztó lánc (KKT Seb → Igü. → Anat → EOK → II. Gyermek)
+  {from:'seb',to:'igorsv_eloszt',label:'16x OS2 + 8x OM3',type:'os2'},
+  {from:'igorsv_eloszt',to:'anat_eloszt',label:'16x OS2 + 8x OM3',type:'os2'},
+  {from:'anat_eloszt',to:'eok_eloszt',label:'16x OS2 + 8x OM3',type:'os2'},
+  {from:'eok_eloszt',to:'gyermek2',label:'16x OS2 + 8x OM3',type:'os2'},
+
+  // Biztonságtechnika
+  {from:'bizt_eloszt',to:'kalvaria_lila',label:'4x MMF 62,5',type:'om1'},
+  {from:'bizt_eloszt',to:'balassa',label:'8x OS2',type:'os2',problem:'+4x OS2 bővítés kell'},
+
+  // Nagyvárad alépületek
+  {from:'nagyvarad',to:'rezsokoll',label:'4-8x SMF',type:'os2'},
+  {from:'nagyvarad',to:'prom_eloszt',label:'MPLS L3',type:'mpls'},
+
+  // MPLS PRO-M
+  {from:'prom_eloszt',to:'orfi',label:'MPLS L3',type:'mpls'},
+  {from:'prom_eloszt',to:'merenyi',label:'MPLS L3',type:'mpls'},
+  {from:'prom_eloszt',to:'amerikai',label:'MPLS L3',type:'mpls'},
+  {from:'prom_eloszt',to:'budakeszi',label:'MPLS L3',type:'mpls'},
+
+  // PAK MPLS
+  {from:'elte_eloszt',to:'janos_eloszt',label:'MPLS L3',type:'mpls'},
+  {from:'janos_eloszt',to:'pak_eloszt',label:'?',type:'unknown'},
+  {from:'pak_eloszt',to:'pak_kut',label:'?',type:'unknown'},
+  {from:'pak_eloszt',to:'erseb',label:'?',type:'unknown'},
+  {from:'pak_eloszt',to:'emk',label:'?',type:'unknown'},
+  {from:'erseb',to:'v70',label:'?',type:'unknown',problem:'Felmérés szükséges'},
+];
+
+// Remove duplicate Kálvária (keep lila version)
+const filteredNodes = nodes.filter(n => n.id !== 'kalvaria');
+const filteredLinks = links.filter(l => l.from !== 'kalvaria' && l.to !== 'kalvaria');
+
+let scale = 0.6, panX = 100, panY = 20;
+let dragging = false, lastX, lastY;
+let activeFilter = 'all';
+
+const world = document.getElementById('world');
+const canvas = document.getElementById('canvas');
+const svgLinks = document.getElementById('svg-links');
+const tooltip = document.getElementById('tooltip');
+
+function toggleFilter(f) {
+  activeFilter = f;
+  document.querySelectorAll('#filter-bar .btn').forEach(b => {
+    b.classList.toggle('active', b.textContent.toLowerCase().includes(f === 'all' ? 'mind' : f === 'warn' ? 'problém' : f));
+  });
+  render();
+}
+
+function render() {
+  // Clear
+  world.querySelectorAll('.node-group,.link-label').forEach(e => e.remove());
+  svgLinks.innerHTML = '';
+
+  const visibleNodes = filteredNodes.filter(n => {
+    if (activeFilter === 'all') return true;
+    if (activeFilter === 'kkt') return n.branch === 'kkt' || n.type === 'core';
+    if (activeFilter === 'bkt') return n.branch === 'bkt' || n.type === 'core';
+    if (activeFilter === 'warn') return n.warn;
+    return true;
+  });
+  const visibleIds = new Set(visibleNodes.map(n => n.id));
+
+  // Draw links
+  filteredLinks.forEach(l => {
+    if (!visibleIds.has(l.from) || !visibleIds.has(l.to)) return;
+    const from = filteredNodes.find(n => n.id === l.from);
+    const to = filteredNodes.find(n => n.id === l.to);
+    if (!from || !to) return;
+
+    const x1 = from.x + 60, y1 = from.y + 20;
+    const x2 = to.x + 60, y2 = to.y + 20;
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', x1);
+    line.setAttribute('y1', y1);
+    line.setAttribute('x2', x2);
+    line.setAttribute('y2', y2);
+
+    let cls = 'link-line ';
+    if (l.type === 'os2') cls += 'link-os2';
+    else if (l.type === 'mmf') cls += 'link-mmf';
+    else if (l.type === 'om3') cls += 'link-om3';
+    else if (l.type === 'om4') cls += 'link-om4';
+    else if (l.type === 'om1') cls += 'link-om1';
+    else if (l.type === 'mpls') cls += 'link-mpls';
+    else cls += 'link-unknown';
+    line.setAttribute('class', cls);
+    svgLinks.appendChild(line);
+
+    // Label
+    if (l.label) {
+      const lbl = document.createElement('div');
+      lbl.className = 'link-label' + (l.problem ? ' problem' : '');
+      lbl.style.left = ((x1 + x2) / 2) + 'px';
+      lbl.style.top = ((y1 + y2) / 2) + 'px';
+      lbl.textContent = l.label;
+      if (l.problem) lbl.title = l.problem;
+      world.appendChild(lbl);
+    }
+  });
+
+  // Draw nodes
+  visibleNodes.forEach(n => {
+    const div = document.createElement('div');
+    div.className = 'node-group ' + n.type + (n.warn ? ' warn' : '');
+    div.style.left = n.x + 'px';
+    div.style.top = n.y + 'px';
+
+    const tierLabel = n.type === 'core' ? 'CORE' :
+                      n.type === 'distro' ? 'DISTRO' :
+                      n.type === 'access' ? 'ACCESS' :
+                      n.type === 'access-lila' ? 'LILA' :
+                      n.type === 'passive' ? 'ELOSZTÓ' :
+                      n.type === 'mpls' ? 'MPLS' : '';
+
+    div.innerHTML = `<div class="node-box">
+      <div class="tier-badge">${tierLabel}</div>
+      <div class="name">${n.name}</div>
+      <div class="info">${n.info}</div>
+    </div>`;
+
+    div.addEventListener('mouseenter', e => showTooltip(e, n));
+    div.addEventListener('mouseleave', () => tooltip.style.display = 'none');
+    world.appendChild(div);
+  });
+
+  updateTransform();
+  updateStats();
+}
+
+function showTooltip(e, n) {
+  let html = `<div class="tt-title">${n.name}</div>`;
+  html += `<div>Típus: ${n.type === 'core' ? 'Core' : n.type === 'distro' ? 'Disztribúció' : n.type.includes('access') ? 'Access' : n.type === 'passive' ? 'Passzív elosztó' : 'MPLS L3'}</div>`;
+  html += `<div>Ág: ${n.branch === 'bkt' ? 'BKT' : n.branch === 'kkt' ? 'KKT' : 'MPLS/Távoli'}</div>`;
+  if (n.rendezok) html += `<div>Rendezők: ${n.rendezok}</div>`;
+
+  const myLinks = filteredLinks.filter(l => l.from === n.id || l.to === n.id);
+  if (myLinks.length) {
+    html += '<div style="margin-top:4px;border-top:1px solid #2a2d3a;padding-top:4px">Kapcsolatok:</div>';
+    myLinks.forEach(l => {
+      const other = l.from === n.id ? l.to : l.from;
+      const otherNode = filteredNodes.find(nn => nn.id === other);
+      html += `<div style="margin-left:8px">→ ${otherNode ? otherNode.name : other}: ${l.label || '?'}</div>`;
+    });
+  }
+  if (n.warn) html += `<div class="tt-warn">⚠ ${n.warn}</div>`;
+  tooltip.innerHTML = html;
+  tooltip.style.display = 'block';
+  tooltip.style.left = Math.min(e.clientX + 12, window.innerWidth - 320) + 'px';
+  tooltip.style.top = Math.min(e.clientY + 12, window.innerHeight - 200) + 'px';
+}
+
+function updateStats() {
+  const cores = filteredNodes.filter(n => n.type === 'core').length;
+  const distros = filteredNodes.filter(n => n.type === 'distro').length;
+  const accesses = filteredNodes.filter(n => n.type === 'access' || n.type === 'access-lila').length;
+  const passives = filteredNodes.filter(n => n.type === 'passive').length;
+  const mpls = filteredNodes.filter(n => n.type === 'mpls').length;
+  const totalRend = filteredNodes.reduce((s, n) => s + (n.rendezok || 0), 0);
+  const problems = filteredNodes.filter(n => n.warn).length + filteredLinks.filter(l => l.problem).length;
+
+  document.getElementById('stats').innerHTML = `
+    <div><b style="color:#8bb4f0">Összesítés</b></div>
+    <div>Core eszközök: <b>${cores * 2}</b> (${cores} helyszín)</div>
+    <div>Disztribúció: <b>${distros}</b> épület</div>
+    <div>Access: <b>${accesses}</b> épület</div>
+    <div>Passzív elosztó: <b>${passives}</b></div>
+    <div>MPLS helyszín: <b>${mpls}</b></div>
+    <div>Össz rendező: <b>${totalRend}</b></div>
+    <div style="color:#ff6a6a">Problémák: <b>${problems}</b></div>
+  `;
+}
+
+function updateTransform() {
+  world.style.transform = `translate(${panX}px,${panY}px) scale(${scale})`;
+}
+
+canvas.addEventListener('mousedown', e => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
+canvas.addEventListener('mousemove', e => {
+  if (!dragging) return;
+  panX += e.clientX - lastX;
+  panY += e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  updateTransform();
+});
+canvas.addEventListener('mouseup', () => dragging = false);
+canvas.addEventListener('mouseleave', () => dragging = false);
+canvas.addEventListener('wheel', e => {
+  e.preventDefault();
+  const d = e.deltaY > 0 ? 0.9 : 1.1;
+  const newScale = Math.max(0.2, Math.min(2, scale * d));
+  const rect = canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  panX = mx - (mx - panX) * (newScale / scale);
+  panY = my - (my - panY) * (newScale / scale);
+  scale = newScale;
+  updateTransform();
+}, {passive: false});
+
+function resetView() { scale = 0.6; panX = 100; panY = 20; updateTransform(); }
+function zoomIn() { scale = Math.min(2, scale * 1.2); updateTransform(); }
+function zoomOut() { scale = Math.max(0.2, scale / 1.2); updateTransform(); }
+
+// Touch support
+let touches = {};
+canvas.addEventListener('touchstart', e => {
+  for (const t of e.changedTouches) touches[t.identifier] = {x: t.clientX, y: t.clientY};
+}, {passive: true});
+canvas.addEventListener('touchmove', e => {
+  e.preventDefault();
+  const ids = Object.keys(touches);
+  if (e.touches.length === 1 && ids.length === 1) {
+    const t = e.touches[0];
+    const prev = touches[t.identifier];
+    if (prev) { panX += t.clientX - prev.x; panY += t.clientY - prev.y; }
+    touches[t.identifier] = {x: t.clientX, y: t.clientY};
+    updateTransform();
+  }
+}, {passive: false});
+canvas.addEventListener('touchend', e => {
+  for (const t of e.changedTouches) delete touches[t.identifier];
+});
+
+render();
+</script>
+</body>
+</html>

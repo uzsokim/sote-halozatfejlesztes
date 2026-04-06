@@ -1,0 +1,1206 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8">
+  <title>SOTE Optikai Célállapot</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      background:
+        radial-gradient(circle at top left, rgba(58, 124, 165, 0.12), transparent 26%),
+        linear-gradient(180deg, #edf4fb 0%, #f8fafc 55%, #eef3f8 100%);
+      color: #14212b;
+    }
+    .wrap {
+      max-width: 1420px;
+      margin: 0 auto;
+      padding: 28px 24px 56px;
+    }
+    .intro {
+      display: grid;
+      grid-template-columns: 1.3fr .7fr;
+      gap: 18px;
+      margin-bottom: 24px;
+    }
+    .hero, .summary, .section {
+      background: rgba(255,255,255,0.9);
+      border: 1px solid rgba(209, 219, 230, 0.9);
+      border-radius: 24px;
+      box-shadow: 0 20px 50px rgba(13, 31, 45, 0.08);
+    }
+    .hero {
+      padding: 24px 26px;
+    }
+    h1 {
+      margin: 0 0 10px;
+      font-size: 30px;
+      line-height: 1.1;
+    }
+    .hero p {
+      margin: 0;
+      line-height: 1.5;
+      color: #415364;
+      font-size: 15px;
+    }
+    .summary {
+      padding: 22px;
+      display: grid;
+      gap: 12px;
+      align-content: start;
+    }
+    .summary strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .legend {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 24px;
+    }
+    .pill {
+      background: rgba(255,255,255,0.88);
+      border-radius: 999px;
+      padding: 9px 13px;
+      border: 1px solid #d8e0eb;
+      font-size: 13px;
+      box-shadow: 0 8px 22px rgba(14, 27, 41, 0.05);
+    }
+    .section {
+      padding: 22px;
+      margin-bottom: 22px;
+    }
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 18px;
+      align-items: start;
+      margin-bottom: 18px;
+    }
+    .section-head h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
+    }
+    .section-head p {
+      margin: 0;
+      color: #516273;
+      font-size: 14px;
+    }
+    .section-stats {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: end;
+    }
+    .section-stats span {
+      font-size: 12px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: #f5f8fb;
+      border: 1px solid #dbe5ee;
+      color: #435466;
+    }
+    .topology {
+      position: relative;
+      overflow: auto;
+      background:
+        linear-gradient(90deg, rgba(18, 48, 69, 0.03) 1px, transparent 1px) 0 0 / 22px 22px,
+        linear-gradient(rgba(18, 48, 69, 0.03) 1px, transparent 1px) 0 0 / 22px 22px,
+        linear-gradient(180deg, #fbfdff 0%, #f4f8fb 100%);
+      border: 1px solid #d8e0eb;
+      border-radius: 22px;
+      min-height: 480px;
+      min-width: 1240px;
+    }
+    .column {
+      position: absolute;
+      top: 18px;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #708191;
+      font-weight: 700;
+      z-index: 2;
+    }
+    .wires {
+      position: absolute;
+      inset: 0;
+      width: 1260px;
+      height: 100%;
+      z-index: 1;
+    }
+    .node {
+      position: absolute;
+      background: rgba(255,255,255,0.98);
+      border: 3px solid;
+      border-radius: 18px;
+      padding: 12px 14px;
+      box-sizing: border-box;
+      box-shadow: 0 18px 36px rgba(12, 27, 42, 0.11);
+      z-index: 2;
+    }
+    .node-title {
+      font-weight: 700;
+      font-size: 14px;
+      margin-bottom: 4px;
+      line-height: 1.25;
+    }
+    .node-role {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #6a7b8c;
+      margin-bottom: 8px;
+    }
+    .node-meta {
+      font-size: 12px;
+      color: #4a5d6f;
+      margin-bottom: 8px;
+    }
+    .node-note {
+      font-size: 12px;
+      line-height: 1.35;
+      color: #26333f;
+    }
+    .edge-label {
+      font-size: 11px;
+      fill: #1f2937;
+      font-weight: 600;
+    }
+    .edge-label-bg {
+      fill: rgba(255,255,255,0.92);
+      stroke: rgba(199, 210, 220, 0.9);
+    }
+    .edge-build {
+      fill: rgba(255, 247, 237, 0.95);
+      stroke: rgba(217, 119, 6, 0.35);
+    }
+    .edge-survey {
+      fill: rgba(254, 242, 242, 0.95);
+      stroke: rgba(197, 48, 48, 0.30);
+    }
+    .cross-core {
+      margin-bottom: 22px;
+    }
+    .cross-core-card {
+      background: linear-gradient(135deg, #123b56 0%, #1a5d7e 100%);
+      color: #fff;
+      border-radius: 22px;
+      padding: 18px 22px;
+      box-shadow: 0 20px 45px rgba(13, 43, 64, 0.18);
+    }
+    .cross-core-title {
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      opacity: 0.8;
+      margin-bottom: 12px;
+    }
+    .cross-core-line {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      font-weight: 700;
+    }
+    .core-box {
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.16);
+    }
+    .core-link {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.16);
+      font-size: 13px;
+    }
+    .cross-core-note {
+      margin-top: 10px;
+      color: rgba(255,255,255,0.82);
+      font-size: 13px;
+    }
+    @media (max-width: 1100px) {
+      .intro {
+        grid-template-columns: 1fr;
+      }
+      .section-head {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="intro">
+      <div class="hero">
+        <h1>SOTE optikai célállapot topológia</h1>
+        <p>Az ábra már nem a Visio koordinátáit másolja, hanem olvasható hálózati nézetben mutatja a javasolt vegyes <code>core-distribution-access</code> és <code>core-access</code> struktúrát. A helyszínek külön BKT, KKT és MPLS panelekbe vannak rendezve, így a disztribúciós pontok, access végpontok, passzív optikai elemek és a bővítendő szakaszok azonnal átláthatók.</p>
+      </div>
+      <div class="summary">
+        <div><strong>Tervezési elv</strong> disztribúció minimalizálása, ahol a meglévő optika még reálisan engedi.</div>
+        <div><strong>Kék oldali szabály</strong> rendezőnként 2 uplink, azaz 4 szál.</div>
+        <div><strong>Lila oldali szabály</strong> rendezőnként 1 uplink, azaz 2 szál.</div>
+        <div><strong>Színkód</strong> zöld: használható, narancs: bővítendő, piros: survey szükséges.</div>
+      </div>
+    </div>
+    <div class="legend">
+      <div class="pill">Zöld keret: core</div>
+      <div class="pill">Kék keret: disztribúció</div>
+      <div class="pill">Lila keret: access</div>
+      <div class="pill">Sárga keret: passzív optikai pont</div>
+      <div class="pill">Piros keret: felmérés szükséges</div>
+      <div class="pill">Narancs vonal: új optika kell</div>
+      <div class="pill">Piros vonal: bizonytalan / survey</div>
+      <div class="pill">Szaggatott szürke: MPLS L3</div>
+    </div>
+    
+        <div class="cross-core">
+          <div class="cross-core-card">
+            <div class="cross-core-title">Core összeköttetés</div>
+            <div class="cross-core-line">
+              <span class="core-box">BKT core</span>
+              <span class="core-link">48x SMF 9/125</span>
+              <span class="core-box">KKT core</span>
+            </div>
+            <div class="cross-core-note">A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</div>
+          </div>
+        </div>
+        
+    
+            <section class="section">
+              <div class="section-head">
+                <div>
+                  <h2>BKT oldal</h2>
+                  <p>BKT core-ból kiszolgált campus-ágak</p>
+                </div>
+                <div class="section-stats">
+                  <span>15 disztribúció</span>
+                  <span>8 access</span>
+                  <span>3 survey</span>
+                </div>
+              </div>
+              <div class="topology" style="height:3940px;">
+                <div class="column column-core" style="left:70px;">Core</div>
+                <div class="column column-passive" style="left:338px;">Passzív optika</div>
+                <div class="column column-distribution" style="left:648px;">Disztribúció / survey</div>
+                <div class="column column-access" style="left:958px;">Access / végpont</div>
+                <svg class="wires" viewBox="0 0 1260 3940">
+                  
+                <path d="M 308 148.0 L 639 148.0 L 639 3322.0 L 970 3322.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8x SMF 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="519" y="1714" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="639" y="1729" text-anchor="middle" class="edge-label">8x SMF 9/125</text>
+                
+                <path d="M 308 148.0 L 329 148.0 L 329 352.0 L 350 352.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="209" y="229" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="329" y="244" text-anchor="middle" class="edge-label">8x MMF 62,5/125</text>
+                
+                <path d="M 1210 3322.0 L 1090 3322.0 L 1090 3220.0 L 970 3220.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="970" y="3250" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="1090" y="3265" text-anchor="middle" class="edge-label">4x MMF 62,5/125</text>
+                
+                <path d="M 308 148.0 L 329 148.0 L 329 352.0 L 350 352.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="209" y="249" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="329" y="264" text-anchor="middle" class="edge-label">8x MMF 62,5/125</text>
+                
+                <path d="M 570 352.0 L 770 352.0 L 770 3220.0 L 970 3220.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>12x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="650" y="1765" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="770" y="1780" text-anchor="middle" class="edge-label">12x MMF 62,5/125</text>
+                
+                <path d="M 570 352.0 L 615 352.0 L 615 1300.0 L 660 1300.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="805" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="820" text-anchor="middle" class="edge-label">4x MMF 62,5/125</text>
+                
+                <path d="M 570 250.0 L 460 250.0 L 460 352.0 L 350 352.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>12x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="340" y="280" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="460" y="295" text-anchor="middle" class="edge-label">12x MMF 62,5/125</text>
+                
+                <path d="M 570 250.0 L 615 250.0 L 615 2554.0 L 660 2554.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="1381" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="1396" text-anchor="middle" class="edge-label">4x MMF 62,5/125</text>
+                
+                <path d="M 308 148.0 L 484 148.0 L 484 1072.0 L 660 1072.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x SMF 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="589" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="604" text-anchor="middle" class="edge-label">4x SMF 9/125</text>
+                
+                <path d="M 660 1642.0 L 484 1642.0 L 484 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8x MMF 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="874" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="889" text-anchor="middle" class="edge-label">8x MMF 50/125</text>
+                
+                <path d="M 308 148.0 L 484 148.0 L 484 1642.0 L 660 1642.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x SMF 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="894" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="909" text-anchor="middle" class="edge-label">4x SMF 9/125</text>
+                
+                <path d="M 970 3424.0 L 935 3424.0 L 935 1642.0 L 900 1642.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8x MMF 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="815" y="2512" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="935" y="2527" text-anchor="middle" class="edge-label">8x MMF 50/125</text>
+                
+                <path d="M 900 1642.0 L 935 1642.0 L 935 3424.0 L 970 3424.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x SMF 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="815" y="2532" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="935" y="2547" text-anchor="middle" class="edge-label">4x SMF 9/125</text>
+                
+                <path d="M 308 148.0 L 484 148.0 L 484 1870.0 L 660 1870.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x SMF 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="988" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="1003" text-anchor="middle" class="edge-label">4x SMF 9/125</text>
+                
+                <path d="M 350 454.0 L 329 454.0 L 329 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>10x MMF 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="209" y="280" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="329" y="295" text-anchor="middle" class="edge-label">10x MMF 50/125</text>
+                
+                <path d="M 308 148.0 L 329 148.0 L 329 454.0 L 350 454.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>30x SMF 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="209" y="300" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="329" y="315" text-anchor="middle" class="edge-label">30x SMF 9/125</text>
+                
+                <path d="M 570 454.0 L 615 454.0 L 615 1528.0 L 660 1528.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>10x SMF 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="970" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="985" text-anchor="middle" class="edge-label">10x SMF 9/125</text>
+                
+                <path d="M 308 148.0 L 484 148.0 L 484 1414.0 L 660 1414.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>12x SMF 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="760" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="775" text-anchor="middle" class="edge-label">12x SMF 9/125</text>
+                
+                <path d="M 308 148.0 L 484 148.0 L 484 1186.0 L 660 1186.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>? | FOK OC: a BKT felőli optika ismeretlen, minimum 4x OS2 9/125 dedikált szálpár szükséges.</title>
+                </path>
+                <rect x="364" y="646" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="484" y="661" text-anchor="middle" class="edge-label">?</text>
+                
+                <path d="M 308 148.0 L 329 148.0 L 329 964.0 L 350 964.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>12xOS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="209" y="535" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="329" y="550" text-anchor="middle" class="edge-label">12xOS2 9/125</text>
+                
+                <path d="M 570 964.0 L 615 964.0 L 615 2440.0 L 660 2440.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="1681" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="1696" text-anchor="middle" class="edge-label">4x MMF 62,5/125</text>
+                
+                <path d="M 570 964.0 L 615 964.0 L 615 2668.0 L 660 2668.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>16x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="1795" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="1810" text-anchor="middle" class="edge-label">16x MMF 62,5/125</text>
+                
+                <path d="M 900 2668.0 L 935 2668.0 L 935 3730.0 L 970 3730.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>12x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="815" y="3178" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="935" y="3193" text-anchor="middle" class="edge-label">12x MMF 62,5/125</text>
+                
+                <path d="M 1210 3730.0 L 1090 3730.0 L 1090 3832.0 L 970 3832.0" stroke="#d97706" stroke-width="3" fill="none">
+                  <title>4x MMF 62,5/125 | Bőrgyógyászat: a 4x MMF kevés 4 rendező 1-uplikes kiszolgálásához, 8 szál összkapacitásig bővíteni kell (+4 szál).</title>
+                </path>
+                <rect x="970" y="3760" width="240" height="22" rx="7" class="edge-label-bg edge-build"></rect>
+                <text x="1090" y="3775" text-anchor="middle" class="edge-label">4x MMF 62,5/125</text>
+                
+                <path d="M 660 2098.0 L 484 2098.0 L 484 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="1102" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="1117" text-anchor="middle" class="edge-label">4x MMF 62,5/125</text>
+                
+                <path d="M 900 3010.0 L 780 3010.0 L 780 2896.0 L 660 2896.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>4x MMF 62,5/125 | Schöpf-Merei ág: rendezőszám és optikai készlet felmérése szükséges.</title>
+                </path>
+                <rect x="660" y="2932" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="780" y="2947" text-anchor="middle" class="edge-label">4x MMF 62,5/125</text>
+                
+                <path d="M 900 2098.0 L 780 2098.0 L 780 3010.0 L 660 3010.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>4x MMF 62,5/125 | Szerves Vegytan ág: rendezőszám és optikai készlet felmérése szükséges.</title>
+                </path>
+                <rect x="660" y="2533" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="780" y="2548" text-anchor="middle" class="edge-label">4x MMF 62,5/125</text>
+                
+                <path d="M 660 2212.0 L 484 2212.0 L 484 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8xOM3 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="1159" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="1174" text-anchor="middle" class="edge-label">8xOM3 50/125</text>
+                
+                <path d="M 660 2212.0 L 484 2212.0 L 484 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>16xOS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="1179" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="1194" text-anchor="middle" class="edge-label">16xOS2 9/125</text>
+                
+                <path d="M 570 760.0 L 460 760.0 L 460 862.0 L 350 862.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>16xOS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="340" y="790" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="460" y="805" text-anchor="middle" class="edge-label">16xOS2 9/125</text>
+                
+                <path d="M 660 2212.0 L 615 2212.0 L 615 760.0 L 570 760.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>16xOS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="1465" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="1480" text-anchor="middle" class="edge-label">16xOS2 9/125</text>
+                
+                <path d="M 570 760.0 L 460 760.0 L 460 862.0 L 350 862.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8xOM3 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="340" y="810" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="460" y="825" text-anchor="middle" class="edge-label">8xOM3 50/125</text>
+                
+                <path d="M 660 2212.0 L 615 2212.0 L 615 760.0 L 570 760.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8xOM3 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="1485" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="1500" text-anchor="middle" class="edge-label">8xOM3 50/125</text>
+                
+                <path d="M 570 454.0 L 615 454.0 L 615 1414.0 L 660 1414.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>nincs felirat | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="913" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="928" text-anchor="middle" class="edge-label">nincs felirat</text>
+                
+                <path d="M 570 454.0 L 460 454.0 L 460 556.0 L 350 556.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>nincs felirat | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="340" y="484" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="460" y="499" text-anchor="middle" class="edge-label">nincs felirat</text>
+                
+                <path d="M 570 556.0 L 460 556.0 L 460 658.0 L 350 658.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>? | PAK ág: optikai típus és darabszám nem ismert.</title>
+                </path>
+                <rect x="340" y="586" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="460" y="601" text-anchor="middle" class="edge-label">?</text>
+                
+                <path d="M 570 658.0 L 615 658.0 L 615 2326.0 L 660 2326.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>? | PAK-KÚT ág: optikai típus és darabszám nem ismert.</title>
+                </path>
+                <rect x="495" y="1511" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="615" y="1526" text-anchor="middle" class="edge-label">?</text>
+                
+                <path d="M 900 1756.0 L 780 1756.0 L 780 1984.0 L 660 1984.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>? | V70–Érsebészet ág: optikai típus és darabszám nem ismert.</title>
+                </path>
+                <rect x="660" y="1849" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="780" y="1864" text-anchor="middle" class="edge-label">?</text>
+                
+                <path d="M 970 3526.0 L 935 3526.0 L 935 2212.0 L 900 2212.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8x OS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="815" y="2848" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="935" y="2863" text-anchor="middle" class="edge-label">8x OS2 9/125</text>
+                
+                <path d="M 660 2098.0 L 484 2098.0 L 484 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>12xOS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="1122" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="1137" text-anchor="middle" class="edge-label">12xOS2 9/125</text>
+                
+                <path d="M 308 148.0 L 484 148.0 L 484 2440.0 L 660 2440.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>12x OS2 9/125 Fejtve: 4 szál 2 szabad | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="1273" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="1288" text-anchor="middle" class="edge-label">12x OS2 9/125 Fejtve: 4 szál 2 szabad</text>
+                
+                <path d="M 900 2440.0 L 935 2440.0 L 935 3628.0 L 970 3628.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>12xOS2 9/125 Fejtve: 4 szál Szabad: 2 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="815" y="3013" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="935" y="3028" text-anchor="middle" class="edge-label">12xOS2 9/125 Fejtve: 4 szál Szabad: 2</text>
+                
+                <path d="M 900 1186.0 L 935 1186.0 L 935 3118.0 L 970 3118.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x MMF 62,5/125 | Sellye Koll: a FOK OC felé meglévő kapcsolat elegendő kis access végpontnak.</title>
+                </path>
+                <rect x="815" y="2131" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="935" y="2146" text-anchor="middle" class="edge-label">4x MMF 62,5/125</text>
+                
+                </svg>
+                
+                <div class="node role-core" style="left:88px;top:110px;width:220px;height:76px;border-color:#177245;" title="">
+                  <div class="node-title">BKT Gépterem</div>
+                  <div class="node-role">Core</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-passive" style="left:350px;top:212px;width:220px;height:76px;border-color:#d9a300;" title="">
+                  <div class="node-title">I. Női klinika Fszt. Optikai Elosztó</div>
+                  <div class="node-role">Passzív optika</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-passive" style="left:350px;top:314px;width:220px;height:76px;border-color:#d9a300;" title="">
+                  <div class="node-title">Pathológia Alagsor Optikai Elosztó</div>
+                  <div class="node-role">Passzív optika</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-passive" style="left:350px;top:416px;width:220px;height:76px;border-color:#d9a300;" title="">
+                  <div class="node-title">Elte Trefortkert D Épület Optikai Elosztó ?</div>
+                  <div class="node-role">Passzív optika</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-passive" style="left:350px;top:518px;width:220px;height:76px;border-color:#d9a300;" title="">
+                  <div class="node-title">János Kórház Optikai Elosztó</div>
+                  <div class="node-role">Passzív optika</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-passive" style="left:350px;top:620px;width:220px;height:76px;border-color:#d9a300;" title="">
+                  <div class="node-title">PAK</div>
+                  <div class="node-role">Passzív optika</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-passive" style="left:350px;top:722px;width:220px;height:76px;border-color:#d9a300;" title="">
+                  <div class="node-title">EOK</div>
+                  <div class="node-role">Passzív optika</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-passive" style="left:350px;top:824px;width:220px;height:76px;border-color:#d9a300;" title="">
+                  <div class="node-title">Anatomia</div>
+                  <div class="node-role">Passzív optika</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-passive" style="left:350px;top:926px;width:220px;height:76px;border-color:#d9a300;" title="">
+                  <div class="node-title">Belgyógyászat Alagsor Optikai Elosztó</div>
+                  <div class="node-role">Passzív optika</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1028px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 10 rendező, a 4x SMF közvetlen accesshez kevés, disztribúcióhoz megfelelő.">
+                  <div class="node-title">B52</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 10 | access sw: 32</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1142px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 8 rendező, de a BKT felőli optika ismeretlen; minimum 4x OS2 dedikált uplink szükséges.">
+                  <div class="node-title">FOK OC</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 8 | access sw: 19</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1256px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 4 rendező mellett a meglévő 4x MMF csak disztribúciós uplinkre elegendő.">
+                  <div class="node-title">II Pathológia</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 4 | access sw: 12</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1370px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 12 rendező, a 12x SMF közvetlen 2x uplinkes accesshez kevés lenne.">
+                  <div class="node-title">Rókus</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 12 | access sw: 23</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1484px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 11 rendező, a BKT felé meglévő 30x SMF jól használható disztribúciós felkötésre.">
+                  <div class="node-title">ETK</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 11 | access sw: 23</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1598px;width:240px;height:88px;border-color:#1756a9;" title="Könyvtár mint disztribúció | A Gazdasági és Műszaki Fő. innen lóg tovább, ezért ez legyen az aggregációs pont.">
+                  <div class="node-title">Könyvtár</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 2 | access sw: 7</div>
+                  <div class="node-note">Könyvtár mint disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1712px;width:240px;height:88px;border-color:#1756a9;" title="Előzetesen disztribúció | 8 rendező; a jelenlegi optika ismeretlen.">
+                  <div class="node-title">V70</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 8 | access sw: 23</div>
+                  <div class="node-note">Előzetesen disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1826px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 8 rendező, a 4x SMF csak disztribúciós uplinkre alkalmas.">
+                  <div class="node-title">BC22</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 8 | access sw: 24</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1940px;width:240px;height:88px;border-color:#1756a9;" title="Előzetesen disztribúció | 24 rendező alapján biztosan nem célszerű közvetlen core-accessként kezelni.">
+                  <div class="node-title">Érsebészet</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 24 | access sw: 26</div>
+                  <div class="node-note">Előzetesen disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:2054px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 9? rendező, részben ismeretlen környezet; a 12x OS2 közvetlenül is inkább disztribúcióra megfelelő.">
+                  <div class="node-title">Gyógyszer Kémiai Intézet</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 9? | access sw: 14?</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:2168px;width:240px;height:88px;border-color:#1756a9;" title="Disztribúció az EOK/Ferenc tér ág számára | 6 rendező plusz külső alág, ezért itt érdemes aggregálni.">
+                  <div class="node-title">II. Gyermek Klinika</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 6 | access sw: 14</div>
+                  <div class="node-note">Disztribúció az EOK/Ferenc tér ág számára</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:2282px;width:240px;height:88px;border-color:#1756a9;" title="Előzetesen disztribúció | 8 rendező és ismeretlen optikai útvonal, ezért minimum disztribúciós helyfoglalás szükséges.">
+                  <div class="node-title">PAK-KÚT</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 8 | access sw: 11</div>
+                  <div class="node-note">Előzetesen disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:2396px;width:240px;height:88px;border-color:#1756a9;" title="Disztribúció a Transzplantáció ágához | Saját 3 rendezője mellett egy teljes alágat szolgál ki.">
+                  <div class="node-title">II. Belgyógyászat A</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 3 | access sw: 7</div>
+                  <div class="node-note">Disztribúció a Transzplantáció ágához</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:2510px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 9 rendezőnél a meglévő 4x MMF csak disztribúciós felkötést tesz reálissá.">
+                  <div class="node-title">I. Női klinika</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 9 | access sw: 15</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:2624px;width:240px;height:88px;border-color:#1756a9;" title="Disztribúció a Rektori ágához | Innen indul tovább a Rektori/Bőr ág.">
+                  <div class="node-title">II. Belgyógyászat B</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 2 | access sw: 4</div>
+                  <div class="node-note">Disztribúció a Rektori ágához</div>
+                </div>
+                
+                <div class="node role-survey" style="left:660px;top:2738px;width:240px;height:88px;border-color:#b94a48;" title="Felmérés után véglegesíthető | A hálózati optikai környezet a rajzból nem fejthető vissza teljesen.">
+                  <div class="node-title">EMK</div>
+                  <div class="node-role">Survey / bizonytalan</div>
+                  <div class="node-meta">rendező: 2 | access sw: 2</div>
+                  <div class="node-note">Felmérés után véglegesíthető</div>
+                </div>
+                
+                <div class="node role-survey" style="left:660px;top:2852px;width:240px;height:88px;border-color:#b94a48;" title="Felmérés után véglegesíthető | A rendező- és switchszám hiányzik, ezért jelenleg csak előzetes helyfoglalás adható.">
+                  <div class="node-title">Schöpf-Merei</div>
+                  <div class="node-role">Survey / bizonytalan</div>
+                  <div class="node-meta">rendező: ? | access sw: ?</div>
+                  <div class="node-note">Felmérés után véglegesíthető</div>
+                </div>
+                
+                <div class="node role-survey" style="left:660px;top:2966px;width:240px;height:88px;border-color:#b94a48;" title="Felmérés után véglegesíthető | A rendező- és switchszám hiányzik, ezért jelenleg csak előzetes helyfoglalás adható.">
+                  <div class="node-title">Szerves Vegytan</div>
+                  <div class="node-role">Survey / bizonytalan</div>
+                  <div class="node-meta">rendező: ? | access sw: ?</div>
+                  <div class="node-note">Felmérés után véglegesíthető</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:3080px;width:240px;height:76px;border-color:#7a4fb0;" title="Access a FOK OC mögött | 1 rendező, a FOK OC felé lévő 4x MMF elég 1 uplinkes kiszolgálásra.">
+                  <div class="node-title">Sellye Koll</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 1 | access sw: 1</div>
+                  <div class="node-note">Access a FOK OC mögött</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:3182px;width:240px;height:76px;border-color:#7a4fb0;" title="Közvetlen core-access | 2 rendező, a Pathológia felőli 12x MMF elegendő a 8 szál igényhez.">
+                  <div class="node-title">II Szemészet</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 2 | access sw: 6</div>
+                  <div class="node-note">Közvetlen core-access</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:3284px;width:240px;height:76px;border-color:#7a4fb0;" title="Közvetlen core-access | 1 rendező, a 8x SMF bőven elegendő a 2x uplinkhez (4 szál).">
+                  <div class="node-title">Szájsebészet</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 1 | access sw: 3</div>
+                  <div class="node-note">Közvetlen core-access</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:3386px;width:240px;height:76px;border-color:#7a4fb0;" title="Access a Könyvtár mögött | 1 rendező, a meglévő 4x SMF elegendő, külön disztribúció nem szükséges.">
+                  <div class="node-title">Gazdasági és Műszaki Fő.</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 1 | access sw: 4</div>
+                  <div class="node-note">Access a Könyvtár mögött</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:3488px;width:240px;height:76px;border-color:#7a4fb0;" title="Access a II. Gyermek Klinika mögött | Kis végpont, 8x OS2 feliratú összeköttetéssel.">
+                  <div class="node-title">Ferenc tér 8xOS2 9/125</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note">Access a II. Gyermek Klinika mögött</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:3590px;width:240px;height:76px;border-color:#7a4fb0;" title="Access a II. Belgyógy A mögött | A 12x OS2 összeköttetés elegendő 1 uplinkes kiszolgálásra.">
+                  <div class="node-title">Transzplantáció</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 5 | access sw: 13</div>
+                  <div class="node-note">Access a II. Belgyógy A mögött</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:3692px;width:240px;height:76px;border-color:#7a4fb0;" title="Access a II. Belgyógy B mögött | A disztribúciót a II. Belgyógy B-ben tartom, így itt külön disztribúció nem szükséges.">
+                  <div class="node-title">Rektori Hivatal</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 4 | access sw: 10</div>
+                  <div class="node-note">Access a II. Belgyógy B mögött</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:3794px;width:240px;height:76px;border-color:#7a4fb0;" title="Access a Rektori mögött | A meglévő 4x MMF kevés 4 rendezőhöz, bővíteni kell 8 szál összkapacitásig.">
+                  <div class="node-title">Bőrgyógyászat</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 4 | access sw: 8</div>
+                  <div class="node-note">Access a Rektori mögött</div>
+                </div>
+                
+              </div>
+            </section>
+            
+            <section class="section">
+              <div class="section-head">
+                <div>
+                  <h2>KKT oldal</h2>
+                  <p>KKT core-ból kiszolgált campus-ágak</p>
+                </div>
+                <div class="section-stats">
+                  <span>10 disztribúció</span>
+                  <span>4 access</span>
+                  <span>4 survey</span>
+                </div>
+              </div>
+              <div class="topology" style="height:2464px;">
+                <div class="column column-core" style="left:70px;">Core</div>
+                <div class="column column-passive" style="left:338px;">Passzív optika</div>
+                <div class="column column-distribution" style="left:648px;">Disztribúció / survey</div>
+                <div class="column column-access" style="left:958px;">Access / végpont</div>
+                <svg class="wires" viewBox="0 0 1260 2464">
+                  
+                <path d="M 660 1486.0 L 484 1486.0 L 484 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>Fejtve: 4x OS2 9/125 Összesen 12x OS2 9/125 Fejtve: 2x 50/125 Összesen: 4x 50/125 OM3 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="796" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="811" text-anchor="middle" class="edge-label">Fejtve: 4x OS2 9/125 Összesen 12x OS2 9/125 Fejtve: 2x 50/125 Összesen: 4x 50/125 OM3</text>
+                
+                <path d="M 660 1372.0 L 484 1372.0 L 484 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>Fejtve: 4x MMF 50/125 Összesen: 12x MMF 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="739" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="754" text-anchor="middle" class="edge-label">Fejtve: 4x MMF 50/125 Összesen: 12x MMF 50/125</text>
+                
+                <path d="M 900 1372.0 L 780 1372.0 L 780 1144.0 L 660 1144.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x OS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="660" y="1237" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="780" y="1252" text-anchor="middle" class="edge-label">4x OS2 9/125</text>
+                
+                <path d="M 570 352.0 L 615 352.0 L 615 1828.0 L 660 1828.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x MMF 62,5/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="1069" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="1084" text-anchor="middle" class="edge-label">4x MMF 62,5/125</text>
+                
+                <path d="M 660 916.0 L 484 916.0 L 484 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>12x OS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="511" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="526" text-anchor="middle" class="edge-label">12x OS2 9/125</text>
+                
+                <path d="M 660 916.0 L 484 916.0 L 484 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>nincs felirat | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="364" y="531" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="546" text-anchor="middle" class="edge-label">nincs felirat</text>
+                
+                <path d="M 900 916.0 L 780 916.0 L 780 802.0 L 660 802.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>? | KBE: ismeretlen optika, minimum 4x OS2 9/125 szükséges a disztribúciós uplinkhez.</title>
+                </path>
+                <rect x="660" y="838" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="780" y="853" text-anchor="middle" class="edge-label">?</text>
+                
+                <path d="M 970 2254.0 L 639 2254.0 L 639 148.0 L 308 148.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8x MMF 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="519" y="1180" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="639" y="1195" text-anchor="middle" class="edge-label">8x MMF 50/125</text>
+                
+                <path d="M 1210 2254.0 L 1090 2254.0 L 1090 2050.0 L 970 2050.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>Fejtve: 2xOM3 50/125 Összesen: 4xOM3 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="970" y="2131" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="1090" y="2146" text-anchor="middle" class="edge-label">Fejtve: 2xOM3 50/125 Összesen: 4xOM3 50/125</text>
+                
+                <path d="M 660 460.0 L 484 460.0 L 484 148.0 L 308 148.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>nincs felirat | KKT Sebészet: a core felőli optika részben ismeretlen, legalább 4x OS2 9/125 dedikáltan szükséges.</title>
+                </path>
+                <rect x="364" y="283" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="484" y="298" text-anchor="middle" class="edge-label">nincs felirat</text>
+                
+                <path d="M 660 460.0 L 484 460.0 L 484 148.0 L 308 148.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>?x SMF ? | KKT Sebészet: a core felőli optika részben ismeretlen, legalább 4x OS2 9/125 dedikáltan szükséges.</title>
+                </path>
+                <rect x="364" y="303" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="484" y="318" text-anchor="middle" class="edge-label">?x SMF ?</text>
+                
+                <path d="M 970 2356.0 L 935 2356.0 L 935 460.0 L 900 460.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>2x OM4 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="815" y="1387" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="935" y="1402" text-anchor="middle" class="edge-label">2x OM4 50/125</text>
+                
+                <path d="M 900 1030.0 L 780 1030.0 L 780 460.0 L 660 460.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>2x OS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="660" y="724" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="780" y="739" text-anchor="middle" class="edge-label">2x OS2 9/125</text>
+                
+                <path d="M 900 688.0 L 780 688.0 L 780 460.0 L 660 460.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>10xOM3 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="660" y="553" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="780" y="568" text-anchor="middle" class="edge-label">10xOM3 50/125</text>
+                
+                <path d="M 900 688.0 L 780 688.0 L 780 460.0 L 660 460.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>30xOS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="660" y="573" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="780" y="588" text-anchor="middle" class="edge-label">30xOS2 9/125</text>
+                
+                <path d="M 900 688.0 L 780 688.0 L 780 1600.0 L 660 1600.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>4 vagy 8 x SMF 9/125 | Rezső Kollégium: 4 vagy 8 szál látszik, rendezőszám nélkül csak felmérés után véglegesíthető.</title>
+                </path>
+                <rect x="660" y="1123" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="780" y="1138" text-anchor="middle" class="edge-label">4 vagy 8 x SMF 9/125</text>
+                
+                <path d="M 570 250.0 L 615 250.0 L 615 460.0 L 660 460.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8x OM3 50/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="334" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="349" text-anchor="middle" class="edge-label">8x OM3 50/125</text>
+                
+                <path d="M 570 250.0 L 615 250.0 L 615 460.0 L 660 460.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>16xOS2 9/125 | A meglévő optika a választott szerepkiosztással várhatóan felhasználható.</title>
+                </path>
+                <rect x="495" y="354" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="615" y="369" text-anchor="middle" class="edge-label">16xOS2 9/125</text>
+                
+                <path d="M 660 1030.0 L 484 1030.0 L 484 148.0 L 308 148.0" stroke="#d97706" stroke-width="3" fill="none">
+                  <title>2x OS2 9/125 4x OM3 50/125 | I. Gyermekklinika: disztribúciós uplinkhez legalább 4 OS2 szál kell; a látható 2x OS2 mellé +2 szál OS2 javasolt.</title>
+                </path>
+                <rect x="364" y="568" width="240" height="22" rx="7" class="edge-label-bg edge-build"></rect>
+                <text x="484" y="583" text-anchor="middle" class="edge-label">2x OS2 9/125 4x OM3 50/125</text>
+                
+                <path d="M 1210 2254.0 L 1090 2254.0 L 1090 2152.0 L 970 2152.0" stroke="#d97706" stroke-width="3" fill="none">
+                  <title>2x OM3 50/125 | Kazán: +2 szál OM3/OM4 szükséges a 4 szál eléréséhez.</title>
+                </path>
+                <rect x="970" y="2182" width="240" height="22" rx="7" class="edge-label-bg edge-build"></rect>
+                <text x="1090" y="2197" text-anchor="middle" class="edge-label">2x OM3 50/125</text>
+                
+                <path d="M 308 148.0 L 484 148.0 L 484 574.0 L 660 574.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>4x OS2 9/125 | Radiológia: a meglévő 4x OS2 alkalmas disztribúciós uplinkre.</title>
+                </path>
+                <rect x="364" y="340" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="355" text-anchor="middle" class="edge-label">4x OS2 9/125</text>
+                
+                <path d="M 308 148.0 L 484 148.0 L 484 1258.0 L 660 1258.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>12x OS2 9/125 | Fül-Orr-Gége: a meglévő 12x OS2 bőséges disztribúciós kapacitást ad.</title>
+                </path>
+                <rect x="364" y="682" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="697" text-anchor="middle" class="edge-label">12x OS2 9/125</text>
+                
+                <path d="M 308 148.0 L 484 148.0 L 484 1942.0 L 660 1942.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>OS2 9/125 + OM2 50/125 (részben ismert) | Urológia: a panelkiosztás ismert, de a teljes optikai készletet és felhasználhatóságát ellenőrizni kell.</title>
+                </path>
+                <rect x="364" y="1024" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="484" y="1039" text-anchor="middle" class="edge-label">OS2 9/125 + OM2 50/125 (részben ismert)</text>
+                
+                <path d="M 308 148.0 L 484 148.0 L 484 1714.0 L 660 1714.0" stroke="#3a7a3d" stroke-width="3" fill="none">
+                  <title>8x OS2 9/125 | Balassa Kollégium: a meglévő 8x OS2 legalább egy disztribúciós uplinkre elegendő.</title>
+                </path>
+                <rect x="364" y="910" width="240" height="22" rx="7" class="edge-label-bg edge-ok"></rect>
+                <text x="484" y="925" text-anchor="middle" class="edge-label">8x OS2 9/125</text>
+                
+                <path d="M 350 352.0 L 329 352.0 L 329 148.0 L 308 148.0" stroke="#c53030" stroke-width="3" fill="none">
+                  <title>ismeretlen | Kálvária előtti biztonságtechnikai elosztó upstream optikája nem ismert, helyszíni survey kell.</title>
+                </path>
+                <rect x="209" y="229" width="240" height="22" rx="7" class="edge-label-bg edge-survey"></rect>
+                <text x="329" y="244" text-anchor="middle" class="edge-label">ismeretlen</text>
+                
+                </svg>
+                
+                <div class="node role-core" style="left:88px;top:110px;width:220px;height:76px;border-color:#177245;" title="">
+                  <div class="node-title">KKT Gépterem</div>
+                  <div class="node-role">Core</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-passive" style="left:350px;top:212px;width:220px;height:76px;border-color:#d9a300;" title="">
+                  <div class="node-title">II. Pathológia (Igazságügyi Orvostan)</div>
+                  <div class="node-role">Passzív optika</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-passive" style="left:350px;top:314px;width:220px;height:76px;border-color:#d9a300;" title="">
+                  <div class="node-title">Biztonságtechnika optikai elosztó</div>
+                  <div class="node-role">Passzív optika</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note"></div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:416px;width:240px;height:88px;border-color:#1756a9;" title="KKT oldali fő disztribúció | 8 rendező, valamint több alág és másik core felőli redundáns optika is itt csatlakozik.">
+                  <div class="node-title">KKT Sebészet</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 8 | access sw: 17</div>
+                  <div class="node-note">KKT oldali fő disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:530px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 6 rendező, közvetlen access helyett disztribúció célszerű.">
+                  <div class="node-title">Radiológia</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 6 | access sw: 10</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:644px;width:240px;height:88px;border-color:#1756a9;" title="Kiemelt disztribúciós campuspont | 33 rendező és több további végpont indul innen.">
+                  <div class="node-title">Nagyvárad Tér</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 33 | access sw: 40</div>
+                  <div class="node-note">Kiemelt disztribúciós campuspont</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:758px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 12 rendező; a hozzá vezető optika bizonytalan, de a szerepe egyértelműen disztribúciós.">
+                  <div class="node-title">KBE</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 12 | access sw: 45</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:872px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 8 rendező; a 12x OS2 elegendő disztribúciós uplinkhez.">
+                  <div class="node-title">II. Női Klinika</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 8 | access sw: 13</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:986px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 15 rendező; közvetlen accessre a látható 2x OS2 nem elég.">
+                  <div class="node-title">I. Gyermekklinika</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 15 | access sw: 26</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1100px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 8 rendező, a Neurológia felé lévő 4x OS2 inkább disztribúciós uplinknek alkalmas.">
+                  <div class="node-title">Tömő</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 8 | access sw: 19</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1214px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 3 rendező és jelentős meglévő OS2 készlet.">
+                  <div class="node-title">Fül-Orr-Gége</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 3 | access sw: 6</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1328px;width:240px;height:88px;border-color:#1756a9;" title="Disztribúció a Tömő ág számára | 7 rendező mellett innen megy tovább a Tömő felé is kapcsolat.">
+                  <div class="node-title">Neurológia/Pszichi</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 7 | access sw: 11</div>
+                  <div class="node-note">Disztribúció a Tömő ág számára</div>
+                </div>
+                
+                <div class="node role-distribution" style="left:660px;top:1442px;width:240px;height:88px;border-color:#1756a9;" title="Lokális disztribúció | 7 rendező, a KKT felé meglévő OS2/OM3 készlet disztribúciós uplinkre megfelelő.">
+                  <div class="node-title">I. Belgyógyászat</div>
+                  <div class="node-role">Disztribúció</div>
+                  <div class="node-meta">rendező: 7 | access sw: 15</div>
+                  <div class="node-note">Lokális disztribúció</div>
+                </div>
+                
+                <div class="node role-survey" style="left:660px;top:1556px;width:240px;height:88px;border-color:#b94a48;" title="Felmérés után véglegesíthető | A Rezső Kollégium rendezőszáma nem ismert, a link 4 vagy 8 szálas bizonytalansággal szerepel.">
+                  <div class="node-title">Resző Kollégium</div>
+                  <div class="node-role">Survey / bizonytalan</div>
+                  <div class="node-meta">rendező: ? | access sw: ?</div>
+                  <div class="node-note">Felmérés után véglegesíthető</div>
+                </div>
+                
+                <div class="node role-survey" style="left:660px;top:1670px;width:240px;height:88px;border-color:#b94a48;" title="Felmérés után véglegesíthető | A Balassa irány jelen feladatban csak érintőlegesen látszik.">
+                  <div class="node-title">Balassa Kollégium</div>
+                  <div class="node-role">Survey / bizonytalan</div>
+                  <div class="node-meta">rendező: 3 | access sw: 11</div>
+                  <div class="node-note">Felmérés után véglegesíthető</div>
+                </div>
+                
+                <div class="node role-survey" style="left:660px;top:1784px;width:240px;height:88px;border-color:#b94a48;" title="Felmérés után véglegesíthető | A Kálvária előtti optikai elosztó felőli szakasz ismeretlen.">
+                  <div class="node-title">Kálvária</div>
+                  <div class="node-role">Survey / bizonytalan</div>
+                  <div class="node-meta">rendező: 1 | access sw: 1</div>
+                  <div class="node-note">Felmérés után véglegesíthető</div>
+                </div>
+                
+                <div class="node role-survey" style="left:660px;top:1898px;width:240px;height:88px;border-color:#b94a48;" title="Felmérés után véglegesíthető | Urológia szerepe és pontos optikai készlete részben bizonytalan.">
+                  <div class="node-title">Urológia</div>
+                  <div class="node-role">Survey / bizonytalan</div>
+                  <div class="node-meta">rendező: 3 | access sw: 6</div>
+                  <div class="node-note">Felmérés után véglegesíthető</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:2012px;width:240px;height:76px;border-color:#7a4fb0;" title="Közvetlen core-access Mosoda útvonalon | 1 rendező, a Mosodából kijövő 4x OM3 elegendő a 4 szál igényhez.">
+                  <div class="node-title">Logisztika</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 1 | access sw: 1</div>
+                  <div class="node-note">Közvetlen core-access Mosoda útvonalon</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:2114px;width:240px;height:76px;border-color:#7a4fb0;" title="Közvetlen core-access | 1 rendező, de a Visió alapján csak 2x OM3 látszik; +2 szál bővítés kell.">
+                  <div class="node-title">Kazán</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 1 | access sw: 1</div>
+                  <div class="node-note">Közvetlen core-access</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:2216px;width:240px;height:76px;border-color:#7a4fb0;" title="Közvetlen core-access | 1 rendező, a 8x MMF elegendő a 4 szál igényhez.">
+                  <div class="node-title">Mosoda</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 1 | access sw: 1</div>
+                  <div class="node-note">Közvetlen core-access</div>
+                </div>
+                
+                <div class="node role-access" style="left:970px;top:2318px;width:240px;height:76px;border-color:#7a4fb0;" title="Access a KKT Sebészet mögött | 1 rendező, a 2x OM4 elegendő 1 uplinkhez.">
+                  <div class="node-title">S1 Épület</div>
+                  <div class="node-role">Access</div>
+                  <div class="node-meta">rendező: 1 | access sw: 1</div>
+                  <div class="node-note">Access a KKT Sebészet mögött</div>
+                </div>
+                
+              </div>
+            </section>
+            
+            <section class="section">
+              <div class="section-head">
+                <div>
+                  <h2>MPLS / külső helyszínek</h2>
+                  <p>Pontozott MPLS L3 logika külön kezelve</p>
+                </div>
+                <div class="section-stats">
+                  <span>0 disztribúció</span>
+                  <span>0 access</span>
+                  <span>0 survey</span>
+                </div>
+              </div>
+              <div class="topology" style="height:664px;">
+                <div class="column column-core" style="left:70px;">Core</div>
+                <div class="column column-passive" style="left:338px;">Passzív optika</div>
+                <div class="column column-distribution" style="left:648px;">Disztribúció / survey</div>
+                <div class="column column-access" style="left:958px;">Access / végpont</div>
+                <svg class="wires" viewBox="0 0 1260 664">
+                  
+                <path d="M 1210 250.0 L 1090 250.0 L 1090 148.0 L 970 148.0" stroke="#6b7280" stroke-width="3" fill="none" stroke-dasharray="7 6">
+                  <title>nincs felirat | MPLS L3 kapcsolat.</title>
+                </path>
+                <rect x="970" y="178" width="240" height="22" rx="7" class="edge-label-bg edge-mpls"></rect>
+                <text x="1090" y="193" text-anchor="middle" class="edge-label">nincs felirat</text>
+                
+                <path d="M 1210 250.0 L 1090 250.0 L 1090 352.0 L 970 352.0" stroke="#6b7280" stroke-width="3" fill="none" stroke-dasharray="7 6">
+                  <title>nincs felirat | MPLS L3 kapcsolat.</title>
+                </path>
+                <rect x="970" y="280" width="240" height="22" rx="7" class="edge-label-bg edge-mpls"></rect>
+                <text x="1090" y="295" text-anchor="middle" class="edge-label">nincs felirat</text>
+                
+                <path d="M 1210 250.0 L 1090 250.0 L 1090 454.0 L 970 454.0" stroke="#6b7280" stroke-width="3" fill="none" stroke-dasharray="7 6">
+                  <title>nincs felirat | MPLS L3 kapcsolat.</title>
+                </path>
+                <rect x="970" y="331" width="240" height="22" rx="7" class="edge-label-bg edge-mpls"></rect>
+                <text x="1090" y="346" text-anchor="middle" class="edge-label">nincs felirat</text>
+                
+                <path d="M 1210 250.0 L 1090 250.0 L 1090 556.0 L 970 556.0" stroke="#6b7280" stroke-width="3" fill="none" stroke-dasharray="7 6">
+                  <title>nincs felirat | MPLS L3 kapcsolat.</title>
+                </path>
+                <rect x="970" y="382" width="240" height="22" rx="7" class="edge-label-bg edge-mpls"></rect>
+                <text x="1090" y="397" text-anchor="middle" class="edge-label">nincs felirat</text>
+                
+                </svg>
+                
+                <div class="node role-mpls" style="left:970px;top:110px;width:240px;height:76px;border-color:#666666;" title="MPLS L3 végpont | Nem campus optikai access/disztribúciós pontként kezelendő.">
+                  <div class="node-title">Amerikai</div>
+                  <div class="node-role">MPLS végpont</div>
+                  <div class="node-meta">rendező: ? | access sw: ?</div>
+                  <div class="node-note">MPLS L3 végpont</div>
+                </div>
+                
+                <div class="node role-mpls" style="left:970px;top:212px;width:240px;height:76px;border-color:#666666;" title="MPLS L3 aggregáció | Külön kezelt MPLS L3 ág.">
+                  <div class="node-title">PRO-M</div>
+                  <div class="node-role">MPLS végpont</div>
+                  <div class="node-meta">rendező: - | access sw: -</div>
+                  <div class="node-note">MPLS L3 aggregáció</div>
+                </div>
+                
+                <div class="node role-mpls" style="left:970px;top:314px;width:240px;height:76px;border-color:#666666;" title="MPLS L3 végpont | Nem campus optikai access/disztribúciós pontként kezelendő.">
+                  <div class="node-title">Budakeszi</div>
+                  <div class="node-role">MPLS végpont</div>
+                  <div class="node-meta">rendező: ? | access sw: ?</div>
+                  <div class="node-note">MPLS L3 végpont</div>
+                </div>
+                
+                <div class="node role-mpls" style="left:970px;top:416px;width:240px;height:76px;border-color:#666666;" title="MPLS L3 végpont | Nem campus optikai access/disztribúciós pontként kezelendő.">
+                  <div class="node-title">ORFI</div>
+                  <div class="node-role">MPLS végpont</div>
+                  <div class="node-meta">rendező: 16 | access sw: 16</div>
+                  <div class="node-note">MPLS L3 végpont</div>
+                </div>
+                
+                <div class="node role-mpls" style="left:970px;top:518px;width:240px;height:76px;border-color:#666666;" title="MPLS L3 végpont | Nem campus optikai access/disztribúciós pontként kezelendő.">
+                  <div class="node-title">Merényi</div>
+                  <div class="node-role">MPLS végpont</div>
+                  <div class="node-meta">rendező: 18 | access sw: 34</div>
+                  <div class="node-note">MPLS L3 végpont</div>
+                </div>
+                
+              </div>
+            </section>
+            
+  </div>
+</body>
+</html>
