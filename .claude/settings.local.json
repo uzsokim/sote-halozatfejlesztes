@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip list:*)",
+      "Bash(node -e \"console.log\\(require.resolve\\('@google-cloud/drive'\\) || 'nem telepítve'\\)\")",
+      "Read(//c/Users/Admin/.config/**)",
+      "Read(//c/Users/Admin/**)"
+    ]
+  }
+}
